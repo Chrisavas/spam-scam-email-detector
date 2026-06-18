@@ -14,7 +14,7 @@ AI-driven system to detect spam/scam emails and auto-reply with scambaiting.
 
 ## Quick Start
 ```bash
-git clone <spam-scam-email-detector>
+git clone spam-scam-email-detector
 cd scam-ai-detector
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
