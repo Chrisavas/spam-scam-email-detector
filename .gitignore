@@ -1,0 +1,26 @@
+# Environment
+.env
+venv/
+__pycache__/
+*.pyc
+
+# Data (μη ανεβάζεις τα μεγάλα datasets στο git)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Model files (αγνόησε γενικά .pkl/.joblib...)
+outputs/*.pkl
+outputs/*.joblib
+# ...ΑΛΛΑ κράτα το τελικό μοντέλο στο repo (το report το θεωρεί παραδοτέο)
+!outputs/classifier.pkl
+
+# Sessions log (μπορεί να περιέχει email content)
+outputs/sessions.jsonl
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
