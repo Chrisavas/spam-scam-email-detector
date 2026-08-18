@@ -1,12 +1,13 @@
 """
 transcript.py — Multi-turn Transcript Exporter
-(υποστηρίζει Task 6 demo & Task 8 report: export συνομιλιών σε markdown)
+(supports the Task 6 demo & the Task 8 report: exporting conversations to markdown)
 
-ΤΙ ΚΑΝΕΙ:
-  Παίρνει το conversation_history που γυρίζει ο responder.generate_reply() και το
-  γράφει σε καθαρό markdown, έτοιμο να μπει ως παράδειγμα στο report ή στα slides.
+WHAT IT DOES:
+  Takes the conversation_history returned by responder.generate_reply() and writes
+  it out as clean markdown, ready to be included as an example in the report or
+  the slides.
 
-ΧΡΗΣΗ:
+USAGE:
     from responder.responder import generate_reply
     from responder.transcript import export_markdown
 
@@ -25,8 +26,8 @@ from datetime import datetime
 
 def _strip_tags(content: str) -> str:
     """
-    Καθαρίζει τα εσωτερικά service markers/tags ώστε το transcript να διαβάζεται
-    ωραία (αφαιρεί το '[Scam email received]:' και τα <scam_email> tags).
+    Cleans up the internal service markers/tags so that the transcript reads
+    nicely (removes '[Scam email received]:' and the <scam_email> tags).
     """
     content = content.replace("[Scam email received]:", "").strip()
     content = re.sub(r"</?scam_email>", "", content).strip()
@@ -35,8 +36,8 @@ def _strip_tags(content: str) -> str:
 
 def history_to_markdown(history: list, scam_type: str = "unknown",
                         title: str = "Scambaiting Transcript") -> str:
-    """Μετατρέπει το conversation_history σε markdown string (χωρίς να γράφει αρχείο)."""
-    # Επικεφαλίδα + metadata (τύπος, ημερομηνία, πλήθος turns).
+    """Converts the conversation_history into a markdown string (without writing a file)."""
+    # Header + metadata (type, date, number of turns).
     lines = [
         f"# {title}",
         "",
@@ -45,7 +46,7 @@ def history_to_markdown(history: list, scam_type: str = "unknown",
         f"- **Turns (our replies):** "
         f"{len([m for m in history if m.get('role') == 'assistant'])}",
         "",
-        # Disclaimer — σημαντικό για το academic/ethics πλαίσιο.
+        # Disclaimer — important for the academic/ethics framing.
         "> ⚠️ Academic scambaiting demo. All targets/content are simulated; "
         "no real personal data, money, or contact details are exchanged.",
         "",
@@ -53,15 +54,15 @@ def history_to_markdown(history: list, scam_type: str = "unknown",
         "",
     ]
 
-    # Διατρέχουμε το history και τυπώνουμε εναλλάξ scammer / δική μας απάντηση.
+    # We walk through the history and print scammer / our reply alternately.
     turn = 0
     for msg in history:
         role = msg.get("role")
         body = _strip_tags(msg.get("content", ""))
-        if role == "user":          # μήνυμα του scammer
+        if role == "user":          # the scammer's message
             turn += 1
             lines += [f"### 🎯 Scammer — message {turn}", "", "```", body, "```", ""]
-        elif role == "assistant":   # δική μας (ασφαλής) απάντηση
+        elif role == "assistant":   # our (safe) reply
             lines += [f"### 🤖 Responder (our reply)", "", body, "", "---", ""]
 
     return "\n".join(lines)
@@ -69,11 +70,11 @@ def history_to_markdown(history: list, scam_type: str = "unknown",
 
 def export_markdown(history: list, path: str, scam_type: str = "unknown",
                     title: str = "Scambaiting Transcript") -> str:
-    """Γράφει το transcript σε αρχείο markdown και επιστρέφει το path."""
-    # Δημιουργούμε τον φάκελο προορισμού αν δεν υπάρχει.
+    """Writes the transcript to a markdown file and returns the path."""
+    # Create the destination folder if it does not exist.
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     md = history_to_markdown(history, scam_type=scam_type, title=title)
-    # encoding="utf-8" για να γράφονται σωστά ελληνικά/emoji.
+    # encoding="utf-8" so that Greek characters/emoji are written correctly.
     with open(path, "w", encoding="utf-8") as f:
         f.write(md)
     print(f"[✓] Transcript saved: {path}")
@@ -81,14 +82,14 @@ def export_markdown(history: list, path: str, scam_type: str = "unknown",
 
 
 if __name__ == "__main__":
-    # Mini self-demo: παράγει ένα 3-turn transcript offline (mock provider).
+    # Mini self-demo: produces a 3-turn transcript offline (mock provider).
     import sys
-    # Προσθέτουμε το src/ στο path ώστε να βρεθεί το responder package.
+    # Add src/ to the path so that the responder package can be found.
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     try:
-        from responder.responder import generate_reply   # όταν τρέχει ως package
+        from responder.responder import generate_reply   # when run as a package
     except ModuleNotFoundError:
-        from responder import generate_reply              # όταν τρέχει ως σκέτο script
+        from responder import generate_reply              # when run as a plain script
 
     emails = [
         "Dear Friend, I am Prince Adebayo from Nigeria with $15 million dollars "
