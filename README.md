@@ -1,27 +1,27 @@
 # 🛡️ ScamAI — AI-Driven Spam Detection & Scam Engagement System
 
-> **MSc Project — Προηγμένη Τεχνητή Νοημοσύνη & Κυβερνοασφάλεια** · Semester Project 1
+> **MSc Project — Advanced Artificial Intelligence & Cybersecurity** · Semester Project 1
 
-Σύστημα **δύο σταδίων** για την καταπολέμηση της ηλεκτρονικής απάτης:
+A **two-stage** system for fighting online fraud:
 
-1. **Classifier** → εντοπίζει scam/spam emails με Μηχανική Μάθηση.
-2. **Responder** → απαντά στους scammers με Generative AI (*scambaiting*), κρατώντας τους απασχολημένους μακριά από πραγματικά θύματα.
+1. **Classifier** → detects scam/spam emails using Machine Learning.
+2. **Responder** → replies to scammers with Generative AI (*scambaiting*), keeping them busy and away from real victims.
 
-> ⚠️ **Ακαδημαϊκό / προσομοιωμένο σύστημα.** Δεν αποστέλλει emails, δεν αλληλεπιδρά με πραγματικούς απατεώνες και δεν αποθηκεύει προσωπικά δεδομένα. Όλες οι συνομιλίες είναι simulated.
-
----
-
-## ✨ Βασικά χαρακτηριστικά
-
-- **Σύγκριση μοντέλων:** Naive Bayes (baseline) vs Random Forest, 8 ερμηνεύσιμα features, `class_weight="balanced"` για την ανισορροπία κλάσεων (7,7% spam).
-- **Responder με offline mock mode:** πλήρης εκτέλεση χωρίς API key/κόστος. Προαιρετικά, υποστηρίζεται πραγματικός provider (Anthropic Claude) μέσω `.env`.
-- **Safety guardrails:** έλεγχος εξόδου που **αποκρύπτει (redacts)** πραγματικά PII / IBAN / κάρτες / wallets και **μπλοκάρει** ραντεβού & απειλές — πριν φύγει οποιαδήποτε απάντηση.
-- **Anti prompt-injection:** το email του scammer περνά ως *μη έμπιστο δεδομένο* μέσα σε `<scam_email>` tags.
-- **Multi-turn:** ο τύπος απάτης «κλειδώνει» στο 1ο μήνυμα ώστε η persona να μένει σταθερή.
+> ⚠️ **Academic / simulated system.** It does not send emails, does not interact with real scammers and does not store any personal data. All conversations are simulated.
 
 ---
 
-## 🧭 Αρχιτεκτονική
+## ✨ Key features
+
+- **Model comparison:** Naive Bayes (baseline) vs Random Forest, 8 interpretable features, `class_weight="balanced"` to handle the class imbalance (7.7% spam).
+- **Responder with offline mock mode:** runs end-to-end with no API key and no cost. Optionally, a real provider (Anthropic Claude) is supported via `.env`.
+- **Safety guardrails:** an output check that **redacts** real PII / IBANs / cards / wallets and **blocks** meeting requests and threats — before any reply leaves the system.
+- **Anti prompt-injection:** the scammer's email is passed as *untrusted data* inside `<scam_email>` tags.
+- **Multi-turn:** the scam type is "locked in" on the first message so the persona stays consistent.
+
+---
+
+## 🧭 Architecture
 
 ```
 email ──▶ [Preprocessing] ──▶ [Classifier] ──scam?──▶ [Responder] ──▶ [safety_check] ──▶ reply
@@ -32,22 +32,22 @@ email ──▶ [Preprocessing] ──▶ [Classifier] ──scam?──▶ [Res
 
 ---
 
-## 📁 Δομή
+## 📁 Structure
 
 ```
 scam-ai/
 ├── data/
 │   ├── raw/                                   # Raw datasets (git-ignored)
 │   └── processed/
-│       └── final_unified_emails_features.csv  # ✅ ΤΕΛΙΚΟ dataset (13.919 email)
+│       └── final_unified_emails_features.csv  # ✅ FINAL dataset (13,919 emails)
 ├── src/
-│   ├── preprocessing/preprocess.py            # καθαρισμός + feature extraction
+│   ├── preprocessing/preprocess.py            # cleaning + feature extraction
 │   ├── classifier/    train.py · predict.py   # ML (NB + RF)
 │   ├── responder/     responder.py · transcript.py   # GenAI + safety + transcript export
 │   └── pipeline/      pipeline.py · app.py     # end-to-end + Streamlit demo
 ├── tests/             test_preprocessing.py · test_responder.py
 ├── outputs/           classifier.pkl
-├── docs/              τεκμηρίωση + τελική αναφορά (.docx/.md)
+├── docs/              documentation + final report (.docx/.md)
 ├── requirements.txt · .env.example · .gitignore
 ├── logo.png                    #  Light mode logo
 ├── logo_dark.png               #  Dark mode logo
@@ -64,18 +64,18 @@ cd scam-ai
 python -m venv venv && source venv/bin/activate    # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
-cp .env.example .env        # Windows: copy .env.example .env   (προαιρετικό — τρέχει και offline)
+cp .env.example .env        # Windows: copy .env.example .env   (optional — it also runs offline)
 ```
 
 ---
 
-## ▶️ Χρήση
+## ▶️ Usage
 
 ```bash
-# 1) Εκπαίδευση classifier (NB + RF) στο ΤΕΛΙΚΟ dataset
+# 1) Train the classifier (NB + RF) on the FINAL dataset
 python src/classifier/train.py --data data/processed/final_unified_emails_features.csv
 
-# 2) Δοκιμαστική πρόβλεψη (inference)
+# 2) Sample prediction (inference)
 python src/classifier/predict.py
 
 # 3) End-to-end / multi-turn demo
@@ -86,71 +86,71 @@ python src/pipeline/pipeline.py --input "Your scam email text here"
 streamlit run src/pipeline/app.py
 ```
 
-> ℹ️ **Dataset:** το `train.py` κάνει ήδη default στο τελικό dataset, οπότε τρέχει και σκέτο (`python src/classifier/train.py`). Το `--data` παραπάνω δίνεται απλώς για σαφήνεια.
-> **Provider:** χωρίς `.env` ο responder τρέχει με τον `mock` (offline, χωρίς key). Για πραγματικές απαντήσεις βάλε στο `.env` `AI_PROVIDER=anthropic` (ή `openai`/`gemini`) και το αντίστοιχο API key.
+> ℹ️ **Dataset:** `train.py` already defaults to the final dataset, so it also runs bare (`python src/classifier/train.py`). The `--data` flag above is given simply for clarity.
+> **Provider:** without a `.env`, the responder runs with the `mock` provider (offline, no key). For real replies, set `AI_PROVIDER=anthropic` (or `openai`/`gemini`) in `.env` along with the corresponding API key.
 
 ---
 
 ## 🧪 Tests
 
 ```bash
-pytest -q      # offline (mock provider) — χωρίς API key
+pytest -q      # offline (mock provider) — no API key needed
 ```
 
 ---
 
-## 📊 Αποτελέσματα (τελικό dataset, 13.919 email, 20% test)
+## 📊 Results (final dataset, 13,919 emails, 20% test)
 
-| Μετρική (κλάση Απάτη) | Naive Bayes | Random Forest |
+| Metric (Scam class) | Naive Bayes | Random Forest |
 |---|---|---|
-| Precision | 0,00 | 0,23 |
-| Recall | 0,00 | 0,65 |
-| F1 | 0,00 | 0,33 |
-| ROC-AUC | 0,575 | **0,815** |
+| Precision | 0.00 | 0.23 |
+| Recall | 0.00 | 0.65 |
+| F1 | 0.00 | 0.33 |
+| ROC-AUC | 0.575 | **0.815** |
 
-Ο Random Forest επιλέχθηκε ως τελικό μοντέλο: σε αμυντικό φίλτρο προτεραιότητα έχει το **recall** (να μην ξεφεύγουν τα scam). Πλήρη ανάλυση, γραφήματα και νομικό/ηθικό πλαίσιο: `docs/ScamAI_Final_Report_EL.docx`.
-
----
-
-## ⚖️ Νομικό / ηθικό πλαίσιο
-
-Η τελική αναφορά καλύπτει GDPR (Καν. 2016/679), AI Act (Καν. 2024/1689, **Άρθρο 50** — διαφάνεια), NIS2, Οδηγία 2013/40/ΕΕ (κυβερνοέγκλημα), ελληνικό **Ν. 4624/2019** & **Άρθρο 9Α Συντάγματος**, καθώς και ηθική ανάλυση του «παραδόξου του δόλου».
+Random Forest was selected as the final model: in a defensive filter, **recall** takes priority (no scam should slip through). Full analysis, charts and the legal/ethical framework: `docs/ScamAI_Final_Report_EL.docx`.
 
 ---
 
-## 👥 Ομάδα
+## ⚖️ Legal / ethical framework
 
-| Ρόλος | Αρμοδιότητα |
+The final report covers GDPR (Reg. 2016/679), the AI Act (Reg. 2024/1689, **Article 50** — transparency), NIS2, Directive 2013/40/EU (cybercrime), the Greek **Law 4624/2019** & **Article 9A of the Constitution**, as well as an ethical analysis of the "deception paradox".
+
+---
+
+## 👥 Team
+
+| Role | Responsibility |
 |---|---|
-| Άτομο 1 | Dataset & Preprocessing |
-| Άτομο 2 | ML Classifier |
-| Άτομο 3 | Generative AI Responder |
-| Άτομο 4 | Pipeline & Demo UI |
-| Άτομο 5 | Literature Review & Ethics |
-| Άτομο 6 | Report & Coordination |
+| Member 1 | Dataset & Preprocessing |
+| Member 2 | ML Classifier |
+| Member 3 | Generative AI Responder |
+| Member 4 | Pipeline & Demo UI |
+| Member 5 | Literature Review & Ethics |
+| Member 6 | Report & Coordination |
 
 ---
 
-## 📚 Datasets & Αναπαραγωγή
+## 📚 Datasets & Reproduction
 
-Το τελικό dataset (13.919 email) προκύπτει από 3 πηγές: **Enron Fraud Email Dataset** (Kaggle), **SpamAssassin Public Corpus** (Kaggle) και **συνθετικά δεδομένα**.
+The final dataset (13,919 emails) is derived from 3 sources: the **Enron Fraud Email Dataset** (Kaggle), the **SpamAssassin Public Corpus** (Kaggle) and **synthetic data**.
 
-Τα datasets είναι git-ignored (μεγάλα αρχεία). Για να τα ξαναφτιάξεις από την αρχή:
+The datasets are git-ignored (large files). To rebuild them from scratch:
 
 ```bash
-# 1) Κατέβασε από Kaggle και βάλε στο data/raw/:
+# 1) Download from Kaggle and place in data/raw/:
 #    enron_fraud.csv, spam_or_not_spam.csv
-# 2) Παρήγαγε τα συνθετικά και ενοποίησε:
+# 2) Generate the synthetic data and merge:
 python data/raw/generate_dataset.py     # -> data/raw/emails.csv
 python data/raw/merge_datasets.py       # -> data/raw/final_unified_emails.csv
-# 3) Εξαγωγή features -> data/processed/final_unified_emails_features.csv
+# 3) Feature extraction -> data/processed/final_unified_emails_features.csv
 ```
 
-Το έτοιμο `outputs/classifier.pkl` επιτρέπει επαλήθευση των αποτελεσμάτων **χωρίς** επανεκπαίδευση.
+The ready-made `outputs/classifier.pkl` allows the results to be verified **without** retraining.
 
 ## 🚀 Streamlit Demo
 
-Για να τρέξεις το interactive UI:
+To run the interactive UI:
 
 ```bash
 streamlit run src/pipeline/app.py
