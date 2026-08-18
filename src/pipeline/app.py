@@ -1,14 +1,14 @@
 """
-app.py — Streamlit demo UI για το ScamAI pipeline
-(Task 6: interactive οπτικοποίηση classifier -> responder -> multi-turn)
+app.py — Streamlit demo UI for the ScamAI pipeline
+(Task 6: interactive visualization of classifier -> responder -> multi-turn)
 
-Τρέξε με: streamlit run src/pipeline/app.py
+Run with: streamlit run src/pipeline/app.py
 
-Χαρακτηριστικά UI:
-  • Safety status badge ανά turn (λίστα issues + flag αν έγινε sanitize)
-  • Λήψη transcript (markdown) από το sidebar
-  • Scam-type badge με χρωματικό κωδικό
-  • Multi-turn conversation panel (τρέχον + αρχείο παλαιών sessions)
+UI features:
+  • Safety status badge per turn (list of issues + flag if the reply was sanitized)
+  • Transcript download (markdown) from the sidebar
+  • Colour-coded scam-type badge
+  • Multi-turn conversation panel (current + archive of past sessions)
 """
 
 import sys
@@ -54,20 +54,20 @@ st.markdown("""
 
 # ── Title ─────────────────────────────────────────────────────────────────────
 st.markdown(
-    "<h1 style='text-align: center;'>ScamAI — Spam Detection & Scambaiting System</h1>", 
+    "<h1 style='text-align: center;'>ScamAI — Spam Detection & Scambaiting System</h1>",
     unsafe_allow_html=True
 )
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.image("logo_dark.png", width=200) 
+    st.image("logo_dark.png", width=200)
     st.divider()
     st.header("⚙️ Settings")
     threshold = st.slider("Scam Detection Threshold", 0.1, 0.9, 0.5, 0.05,
                           help="Confidence above this → treat as scam")
     provider = st.selectbox(
         "AI Provider",
-        ["mock", "anthropic", "openai", "gemini"],  # mock = offline default, χωρίς API key
+        ["mock", "anthropic", "openai", "gemini"],  # mock = offline default, no API key
         help="'mock' runs fully offline, 'gemini' is free!"
     )
     show_safety_details = st.checkbox("Show safety details", value=True,
@@ -91,20 +91,20 @@ with st.sidebar:
         )
     else:
         st.caption("Run at least one scam analysis to export a transcript.")
-        
-    st.markdown("<br><br><br>", unsafe_allow_html=True) 
+
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
     st.caption("🎓 **MSc Project** | Advanced AI and Cybersecurity")
 
 # ── Session state ─────────────────────────────────────────────────────────────
-#  Streamlit re runs the script in every interaction· session_state
-# keeps the state (history, turns, ενεργό session) between reruns.
+#  Streamlit re runs the script in every interaction; session_state
+# keeps the state (history, turns, active session) between reruns.
 if "history" not in st.session_state:
     st.session_state.history = []
 if "turns" not in st.session_state:
     st.session_state.turns = []
 if "last_scam_type" not in st.session_state:
     st.session_state.last_scam_type = None
-# Θυμάται αν το session έχει ήδη χαρακτηριστεί scam (κρίσιμο για multi-turn)
+# Remembers whether the session has already been flagged as scam (critical for multi-turn)
 if "active_scam_session" not in st.session_state:
     st.session_state.active_scam_session = False
 if "past_sessions" not in st.session_state:
@@ -117,11 +117,11 @@ col1, col2 = st.columns([1, 1], gap="large")
 # ── Left: Email input ─────────────────────────────────────────────────────────
 with col1:
     st.subheader("📧 Input Email")
-    
+
     # ← Callback function
     def reset_email():
         st.session_state.email_input = ""
-    
+
     email_text = st.text_area(
         "Paste email body here:",
         height=260,
@@ -143,7 +143,7 @@ with col1:
         st.session_state.turns   = []
         st.session_state.last_scam_type = None
         st.session_state.active_scam_session = False
-        
+
         st.success("Session reset!")
         st.rerun()
 
@@ -155,13 +155,13 @@ with col2:
         st.info(
             """
             ### 👋 Welcome to ScamAI!
-            
+
             **How to use:**
             1. 📧 Paste an email in the left panel
             2. 🔍 Click "Analyze"
             3. 📊 View results here (classification, metrics, charts)
             4. 💬 Read the AI-generated response
-            
+
             """
         )
 
@@ -174,7 +174,7 @@ with col2:
 
             is_scam    = clf_result["confidence"] >= threshold
 
-        # When scam is detected, the session is locked as active. 
+        # When scam is detected, the session is locked as active.
         # The next messages will recieve answer even if they seem  legit (multi-turn).
         if is_scam:
             st.session_state.active_scam_session = True
@@ -188,7 +188,7 @@ with col2:
             )
         else:
             st.success(f"✅ LEGITIMATE — {1 - clf_result['confidence']:.1%} legitimate confidence")
-            # Ενημέρωση χρήστη: συνεχίζουμε τη συνομιλία λόγω ενεργού session
+            # Inform the user: we continue the conversation because the session is active
             if st.session_state.active_scam_session:
                 st.warning("⚠️ This message looks legitimate, but we created a response because it belongs to a Scambaiting session!")
 
@@ -201,8 +201,8 @@ with col2:
             c3.metric("CAPS Ratio",     f"{feats['caps_ratio']:.1%}")
             c4.metric("Exclamations",   feats["exclamation_count"])
 
-        # ── Βήμα 2: Παραγωγή απάντησης ──
-        # Απαντάμε αν είναι scam Ή αν το session είναι ήδη ενεργό (multi-turn).
+        # ── Step 2: Reply generation ──
+        # We reply if it is a scam OR if the session is already active (multi-turn).
         if is_scam or st.session_state.active_scam_session:
             st.divider()
             with st.spinner("Generating scambaiting reply…"):
@@ -272,12 +272,12 @@ with col2:
 if st.session_state.get("past_sessions"):
     st.divider()
     st.subheader("🗄️ Past Sessions Archive")
-    
+
     for i, past_session in enumerate(st.session_state.past_sessions, 1):
         p_scam_type = past_session["scam_type"].replace('_', ' ').title() if past_session["scam_type"] else "Unknown"
         p_turns = past_session["turns"]
-        
-        # Κλειστό expander για κάθε παλιό session
+
+        # Collapsed expander for each past session
         with st.expander(f"📁 Past Session #{i}: {p_scam_type} ({len(p_turns)} turns)", expanded=False):
             for t in p_turns:
                 st.markdown(f"**🎯 Scammer (Turn #{t['turn']}):**")
@@ -291,23 +291,23 @@ if st.session_state.turns:
     if not st.session_state.get("past_sessions"):
         st.divider()
     st.subheader("🔄 Current Conversation")
-    
+
     scam_type_str = st.session_state.last_scam_type.replace('_', ' ').title() if st.session_state.last_scam_type else "Scam"
-    
-    # Ανοιχτό expander για το τρέχον session
+
+    # Expanded expander for the current session
     with st.expander(f"💬 Active Session: {scam_type_str} ({len(st.session_state.turns)} turns)", expanded=True):
-        
+
         for t in st.session_state.turns:
             safety  = t.get("safety", {})
             s_icon  = "🛡️" if safety.get("safe", True) else "⚠️"
-            
+
             st.markdown(f"**🎯 Scammer (Turn #{t['turn']}):**")
             st.info(t['email'])
-            
+
             st.markdown(f"**🤖 Our Reply {s_icon}:**")
             st.success(t['reply'])
-            
+
             if show_safety_details and not safety.get("safe", True):
                 st.caption(f"⚠️ Guardrail triggered: {', '.join(safety.get('issues', []))} (Reply was sanitized)")
-            
+
             st.divider()
