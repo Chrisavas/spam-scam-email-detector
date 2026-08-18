@@ -1,49 +1,49 @@
 """
-test_preprocessing.py — Unit tests για το preprocessing module
-(Task 2: έλεγχος ορθότητας του καθαρισμού κειμένου και της εξαγωγής χαρακτηριστικών)
+test_preprocessing.py — Unit tests for the preprocessing module
+(Task 2: verifying the correctness of text cleaning and feature extraction)
 
-ΤΙ ΕΛΕΓΧΕΙ:
-  Επιβεβαιώνει ότι οι δύο βασικές συναρτήσεις του preprocessing δουλεύουν σωστά:
-    • clean_text()      — αφαιρεί HTML/URLs, μετατρέπει σε πεζά
-    • extract_features()— παράγει τα 8 αριθμητικά features (+ cleaned_text)
+WHAT IT CHECKS:
+  Confirms that the two core preprocessing functions work correctly:
+    • clean_text()      — removes HTML/URLs, converts to lowercase
+    • extract_features()— produces the 8 numeric features (+ cleaned_text)
 
-  Τα features αυτά τροφοδοτούν απευθείας τον classifier (Task 4), οπότε ένα σφάλμα
-  εδώ θα «μόλυνε» σιωπηλά όλο το μοντέλο. Γι' αυτό τα tests καλύπτουν τόσο ένα
-  τυπικό scam όσο και ένα τυπικό legit email.
+  These features feed directly into the classifier (Task 4), so an error here
+  would silently "poison" the whole model. That is why the tests cover both a
+  typical scam and a typical legit email.
 
-Τρέξε με: pytest tests/
+Run with: pytest tests/
 """
 
 import sys, os
-# Προσθέτουμε τη ρίζα του project στο path ώστε να βρεθεί το πακέτο src.
+# Add the project root to the path so that the src package can be found.
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from src.preprocessing.preprocess import clean_text, extract_features
 
 
-# ── clean_text: καθαρισμός κειμένου ─────────────────────────────────────────
+# ── clean_text: text cleaning ───────────────────────────────────────────────
 def test_clean_text_removes_html():
-    # Τα HTML tags πρέπει να αφαιρούνται, το περιεχόμενο να μένει (πεζό).
+    # HTML tags must be removed, the content must remain (lowercased).
     result = clean_text("<b>Hello</b> World")
     assert "<b>" not in result
     assert "hello" in result
 
 
 def test_clean_text_removes_urls():
-    # Τα URLs αφαιρούνται (συχνό σημείο απόκρυψης phishing links).
+    # URLs are removed (a common hiding place for phishing links).
     result = clean_text("Visit http://scam.com for details")
     assert "http" not in result
 
 
 def test_clean_text_lowercases():
-    # Ομοιομορφία: όλα πεζά, ώστε "URGENT" και "urgent" να μετρούν το ίδιο.
+    # Uniformity: everything lowercase, so that "URGENT" and "urgent" count the same.
     result = clean_text("HELLO WORLD")
     assert result == "hello world"
 
 
-# ── extract_features: εξαγωγή χαρακτηριστικών ───────────────────────────────
+# ── extract_features: feature extraction ────────────────────────────────────
 def test_extract_features_scam_keywords():
-    # Τυπικό scam: πρέπει να «ανάβουν» τα σήματα απάτης — scam keywords, αναφορές
-    # χρημάτων, θαυμαστικά και ποσοστό κεφαλαίων.
+    # Typical scam: the fraud signals must "light up" — scam keywords, money
+    # mentions, exclamation marks and uppercase ratio.
     scam_text = "URGENT! I am a Nigerian Prince with $15 million dollars. 100% confidential!!!"
     features = extract_features(scam_text)
     assert features["scam_keyword_count"] > 0
@@ -53,8 +53,8 @@ def test_extract_features_scam_keywords():
 
 
 def test_extract_features_legit_email():
-    # Τυπικό legit: κανένα σήμα απάτης (0 scam keywords, 0 αναφορές χρημάτων).
-    # Επιβεβαιώνει ότι δεν έχουμε υπερβολικά false positives στο feature level.
+    # Typical legit: no fraud signals (0 scam keywords, 0 money mentions).
+    # Confirms that we do not get excessive false positives at the feature level.
     legit_text = "Hi John, see you at the office tomorrow at 3pm. Thanks for lunch yesterday! Sarah."
     features = extract_features(legit_text)
     assert features["scam_keyword_count"] == 0
@@ -62,8 +62,8 @@ def test_extract_features_legit_email():
 
 
 def test_extract_features_returns_all_keys():
-    # Συμβόλαιο (contract) του module: πρέπει ΠΑΝΤΑ να επιστρέφονται και τα 9 πεδία
-    # (8 αριθμητικά features + cleaned_text). Αν κάποιο λείψει, ο classifier σπάει.
+    # Module contract: all 9 fields must ALWAYS be returned
+    # (8 numeric features + cleaned_text). If one is missing, the classifier breaks.
     features = extract_features("test email")
     expected_keys = [
         "word_count", "unique_words", "avg_word_length",
