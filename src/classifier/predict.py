@@ -1,26 +1,26 @@
 """
-predict.py — Inference: πρόβλεψη scam/legit για νέα emails
-(Task 4: το inference στάδιο του classifier, τροφοδοτεί το pipeline/responder)
+predict.py — Inference: scam/legit prediction for new emails
+(Task 4: the inference stage of the classifier, feeding the pipeline/responder)
 
-ΤΙ ΚΑΝΕΙ:
-  Φορτώνει το εκπαιδευμένο μοντέλο (outputs/classifier.pkl), εξάγει δυναμικά τα
-  features ενός νέου email μέσω του preprocessing, και επιστρέφει label + confidence.
-  Είναι ο "κρίκος" που καλεί το pipeline: αν το αποτέλεσμα είναι SCAM, ενεργοποιείται
-  ο responder.
+WHAT IT DOES:
+  Loads the trained model (outputs/classifier.pkl), dynamically extracts the
+  features of a new email via preprocessing, and returns a label + confidence.
+  It is the "link" called by the pipeline: if the result is SCAM, the responder
+  is triggered.
 """
 
 import pickle
 import sys
 import os
 
-# Το src/ (γονιός αυτού του φακέλου) μπαίνει στο path ώστε να βρεθεί το
-# preprocessing package (χρησιμοποιούμε τα ΙΔΙΑ features με την εκπαίδευση).
+# src/ (the parent of this folder) is added to the path so that the
+# preprocessing package can be found (we use the SAME features as in training).
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from preprocessing.preprocess import extract_features
 import pandas as pd
 
-# Απόλυτο path για το model -> λειτουργεί ανεξάρτητα από το cwd (από όπου κι αν
-# τρέξει ο χρήστης το script, βρίσκει το outputs/classifier.pkl).
+# Absolute path for the model -> works regardless of the cwd (wherever the user
+# runs the script from, it finds outputs/classifier.pkl).
 _PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..")
 )
@@ -28,7 +28,7 @@ _DEFAULT_MODEL_PATH = os.path.join(_PROJECT_ROOT, "outputs", "classifier.pkl")
 
 
 def load_model(model_path: str = None):
-    """Φορτώνει το bundle (model + scaler + features) από το .pkl."""
+    """Loads the bundle (model + scaler + features) from the .pkl file."""
     if model_path is None:
         model_path = _DEFAULT_MODEL_PATH
     with open(model_path, "rb") as f:
@@ -38,21 +38,21 @@ def load_model(model_path: str = None):
 
 def predict_email(text: str, model_path: str = None) -> dict:
     """
-    Παίρνει email text και επιστρέφει:
-      - label     : "SCAM" ή "LEGIT"
-      - confidence: πιθανότητα να είναι scam (0.0–1.0)
-      - features  : τα extracted features (για διαφάνεια/debugging)
+    Takes email text and returns:
+      - label     : "SCAM" or "LEGIT"
+      - confidence: probability of being a scam (0.0–1.0)
+      - features  : the extracted features (for transparency/debugging)
     """
     model, scaler, feature_cols = load_model(model_path)
 
-    # Ίδια εξαγωγή features με την εκπαίδευση -> ίδιο "λεξιλόγιο" εισόδου.
+    # Same feature extraction as in training -> same input "vocabulary".
     features = extract_features(text)
-    # DataFrame με τις στήλες στη ΣΩΣΤΗ σειρά (feature_cols) που περιμένει το μοντέλο.
+    # DataFrame with the columns in the CORRECT order (feature_cols) expected by the model.
     X = pd.DataFrame([features])[feature_cols].fillna(0)
 
     proba = model.predict_proba(X)[0]
-    scam_prob = proba[1]                       # πιθανότητα κλάσης "Spam"
-    # Κατώφλι 0.5: >=0.5 -> SCAM. Ευνοεί το recall (αμυντικό φίλτρο).
+    scam_prob = proba[1]                       # probability of the "Spam" class
+    # Threshold 0.5: >=0.5 -> SCAM. Favours recall (defensive filter).
     label = "SCAM" if scam_prob >= 0.5 else "LEGIT"
 
     return {
@@ -63,7 +63,7 @@ def predict_email(text: str, model_path: str = None) -> dict:
 
 
 if __name__ == "__main__":
-    # Γρήγορο test με ένα δείγμα scam email.
+    # Quick test with a sample scam email.
     sample_scam = """
     Dear Beloved Friend,
     I am Prince Adebayo of Nigeria. I have $45 MILLION DOLLARS
