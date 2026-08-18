@@ -1,22 +1,22 @@
 """
-generate_dataset.py — Δημιουργία synthetic dataset για scam/legit email classification
-(Task 1: δημιουργία dataset με έμφαση σε "Nigerian prince"-style απάτες)
+generate_dataset.py — Creation of a synthetic dataset for scam/legit email classification
+(Task 1: dataset creation with an emphasis on "Nigerian prince"-style fraud)
 
-ΤΙ ΚΑΝΕΙ:
-  Παράγει ένα ελεγχόμενο, καθαρό synthetic dataset από templates. Αργότερα
-  ενοποιείται (merge_datasets.py) με τα δύο πραγματικά corpora (Enron, SpamAssassin).
-  Ο ρόλος των synthetic δεδομένων ειναι να δίνουν ΠΛΗΡΗ ΕΛΕΓΧΟ στις ετικέτες και
-  καθαρά, μη θορυβώδη παραδείγματα για κάθε τύπο απάτης.
+WHAT IT DOES:
+  Produces a controlled, clean synthetic dataset from templates. It is later
+  merged (merge_datasets.py) with the two real corpora (Enron, SpamAssassin).
+  The role of the synthetic data is to give FULL CONTROL over the labels and
+  clean, noise-free examples for each fraud type.
 
-ΚΑΤΗΓΟΡΙΕΣ:
-  4 τύποι scam (Nigerian prince, lottery, romance, investment/crypto) + legit emails.
-  Οι τύποι scam αντιστοιχούν στις personas του responder (Task 5), ώστε το σύστημα
-  να ειναι συνεπές από άκρη σε άκρη.
+CATEGORIES:
+  4 scam types (Nigerian prince, lottery, romance, investment/crypto) + legit emails.
+  The scam types correspond to the responder's personas (Task 5), so that the system
+  is consistent end to end.
 
-ΣΗΜΕΙΩΣΗ ΑΚΡΙΒΕΙΑΣ/ΗΘΙΚΗΣ:
-  Τα templates βασίζονται σε γνωστά, δημόσια τεκμηριωμένα patterns scam emails
-  (security research / FTC / Action Fraud) και ΔΕΝ αντιγράφουν πραγματικό email
-  ουτε πραγματικά προσωπικά δεδομένα.
+ACCURACY / ETHICS NOTE:
+  The templates are based on well-known, publicly documented scam email patterns
+  (security research / FTC / Action Fraud) and do NOT copy any real email or any
+  real personal data.
 
 OUTPUT: data/raw/emails.csv  (schema: text, label)
 """
@@ -24,16 +24,16 @@ OUTPUT: data/raw/emails.csv  (schema: text, label)
 import pandas as pd
 import random
 
-# Σταθερό seed -> ντετερμινιστική παραγωγή: το dataset αναπαράγεται ακριβώς ίδιο.
+# Fixed seed -> deterministic generation: the dataset is reproduced exactly the same.
 random.seed(42)
 
 # ─────────────────────────────────────────────────────────
-# SCAM EMAILS — 4 κατηγορίες, πολλαπλές παραλλαγές η καθεμία
+# SCAM EMAILS — 4 categories, multiple variants each
 # ─────────────────────────────────────────────────────────
 
-# Κατηγορία 1 — Advance-fee fraud ("419"): υπόσχεση τεράστιου ποσού έναντι μικρής
-# "βοήθειας". Placeholders {name}/{country}/{amount} γεμίζουν τυχαία παρακάτω,
-# ώστε από λίγα templates να προκύψουν πολλές παραλλαγές.
+# Category 1 — Advance-fee fraud ("419"): the promise of a huge sum in exchange for
+# a small amount of "help". The {name}/{country}/{amount} placeholders are filled
+# randomly below, so that a few templates produce many variants.
 nigerian_prince_templates = [
     "Dear Beloved Friend, I am Prince {name} from {country}. My late father left me ${amount} million dollars that I need to transfer out of the country urgently. I need your assistance and bank account to complete this transfer. You will receive 30% of the total sum. This is 100% legitimate and confidential. Please reply with your full name, address and bank details so we can proceed immediately. God bless you, Prince {name}.",
     "Greetings, I am Barrister {name}, lawyer to the late Mr. {country} businessman who died without a will. He left behind ${amount} million dollars in a bank account. I am contacting you because you share the same last name and could be declared next of kin. We can split the funds 50/50 if you assist me. Kindly respond urgently with your personal information.",
@@ -41,8 +41,8 @@ nigerian_prince_templates = [
     "Dear Sir/Madam, This letter might come to you as a surprise. I am {name}, an account officer at a bank in {country}. One of our customers died with his family in a plane crash leaving a deposit of ${amount} million dollars unclaimed. I want you to stand as next of kin so we can claim and share this money. Reply urgently for more details.",
 ]
 
-# Κατηγορία 2 — Lottery: "κερδίσατε" έπαθλο σε κλήρωση που δεν παίξατε ποτέ,
-# με "τέλη απελευθέρωσης". Εκμεταλλεύεται σπανιότητα + επείγον.
+# Category 2 — Lottery: "you won" a prize in a draw you never entered, with
+# "release fees". Exploits scarcity + urgency.
 lottery_templates = [
     "CONGRATULATIONS!!! Your email address has WON ${amount},000 in the International Online Lottery Promotion! To claim your prize, kindly send us your full name, address, phone number and a copy of your ID. Processing fee of $200 is required to release your winnings. Reply IMMEDIATELY as this offer expires in 48 hours!",
     "Dear Winner, We are pleased to inform you that your email was selected as one of the lucky winners in our {amount} Million Dollar Sweepstakes Draw. This is a Microsoft promotional lottery. To claim your prize you must contact our claims agent and provide your personal details and a small administrative fee.",
@@ -50,24 +50,24 @@ lottery_templates = [
     "ATTENTION: This is to inform you that you have won the sum of ${amount},000 GBP in the UK National Lottery International Draw. You were randomly selected through our computer ballot system. Send your details and a verification fee of 150 GBP to claim your prize today!",
 ]
 
-# Κατηγορία 3 — Romance: χτίζει ψεύτικη συναισθηματική σχέση πριν ζητήσει χρήματα.
-# Εκμεταλλεύεται μοναξιά + συμπάθεια.
+# Category 3 — Romance: builds a fake emotional relationship before asking for money.
+# Exploits loneliness + sympathy.
 romance_templates = [
     "My Dearest, I hope this message finds you well. I am a lonely {age} year old widow living alone since my husband passed. I found your profile and felt an instant connection. I would love to get to know you better. I am currently stuck abroad for a business trip and need a little help with my hotel bill, just $300, I will pay you back when I return. You are my only hope.",
     "Hello my love, It has been wonderful talking to you these past weeks. I feel like we have a real connection. Unfortunately I have an emergency, my daughter is sick and I cannot access my funds here in {country}. Could you send $500 through Western Union? I promise to pay you back as soon as I land. I trust you completely, my dear.",
     "My darling, I think about you every day since we started talking. I am a soldier currently deployed and I need help shipping my personal belongings home, it requires a customs fee of $450. Please help me, you are the love of my life and I cannot wait to finally meet you in person.",
 ]
 
-# Κατηγορία 4 — Investment/crypto: "εγγυημένες" υπερβολικές αποδόσεις.
-# Εκμεταλλεύεται απληστία + φόβο απώλειας ευκαιρίας (FOMO).
+# Category 4 — Investment/crypto: "guaranteed" excessive returns.
+# Exploits greed + fear of missing out (FOMO).
 investment_templates = [
     "Hello Investor, I am reaching out with an exclusive opportunity to DOUBLE YOUR MONEY in just 7 days through our guaranteed crypto trading platform. Our AI algorithm has a 100% success rate. Minimum investment is just $200. Send your Bitcoin wallet details now before this offer closes. Limited spots available!",
     "URGENT INVESTMENT ALERT: Our trading bot generated 500% returns last month for our investors. Join now and start earning passive income immediately! Send your initial deposit via cryptocurrency to begin. Guaranteed profits, zero risk, act fast before the price increases!",
     "Dear Future Millionaire, I am a financial advisor managing a private investment fund with guaranteed returns of 30% monthly. This is a once in a lifetime opportunity reserved for select clients. Wire transfer your investment today and start seeing profits within 48 hours!",
 ]
 
-# Πίνακες τυχαίων τιμών για το γέμισμα των placeholders -> ποικιλία στα emails
-# χωρίς να χρειάζονται δεκάδες ξεχωριστά templates.
+# Tables of random values for filling the placeholders -> variety in the emails
+# without needing dozens of separate templates.
 names = ["Adebayo", "Johnson", "Williams", "Okafor", "Mbeki", "Hassan", "Ibrahim", "Garcia",
          "Chukwu", "Mensah", "Diallo", "Osei", "Abara", "Khalid", "Suleiman", "Kamau"]
 countries = ["Nigeria", "South Africa", "Ghana", "Kenya", "Ivory Coast", "Sierra Leone",
@@ -77,7 +77,7 @@ ages = ["52", "58", "47", "61", "55", "49", "63", "57"]
 
 
 def fill_template(template):
-    """Γεμίζει ένα scam template με τυχαίες τιμές στα placeholders του."""
+    """Fills a scam template with random values in its placeholders."""
     return template.format(
         name=random.choice(names),
         country=random.choice(countries),
@@ -87,12 +87,12 @@ def fill_template(template):
 
 
 # ─────────────────────────────────────────────────────────
-# LEGIT EMAILS — επαγγελματικά, προσωπικά, newsletters
+# LEGIT EMAILS — professional, personal, newsletters
 # ─────────────────────────────────────────────────────────
 
-# LEGIT templates — καθημερινά emails (δουλειά, προσωπικά, newsletters, υπενθυμίσεις).
-# Σκόπιμα "κανονικά", ώστε το μοντέλο να μάθει πώς μοιάζει η ΝΟΜΙΜΗ αλληλογραφία
-# και να μη θεωρεί απάτη κάθε email με επείγοντα τόνο.
+# LEGIT templates — everyday emails (work, personal, newsletters, reminders).
+# Deliberately "ordinary", so that the model learns what LEGITIMATE correspondence
+# looks like and does not treat every email with an urgent tone as fraud.
 legit_templates = [
     "Hi {name}, Just confirming our meeting tomorrow at {time}. Let me know if you need to reschedule. Best regards, {sender}",
     "Hello team, Attached is the quarterly report for Q{q}. Please review before Friday's meeting and send any feedback. Thanks, {sender}",
@@ -126,7 +126,7 @@ times = ["10:00 AM", "2:30 PM", "9:00 AM", "4:00 PM", "11:15 AM", "3:00 PM"]
 
 
 def fill_legit(template):
-    """Γεμίζει ένα legit template με τυχαία ονόματα/ώρες/αριθμό παραγγελίας."""
+    """Fills a legit template with random names/times/order numbers."""
     return template.format(
         name=random.choice(recipient_names),
         sender=random.choice(sender_names),
@@ -137,17 +137,17 @@ def fill_legit(template):
 
 
 # ─────────────────────────────────────────────────────────
-# Δημιουργία dataset με πολλαπλασιασμό παραλλαγών
+# Building the dataset by multiplying the variants
 # ─────────────────────────────────────────────────────────
 
-# --- ΠΑΡΑΓΩΓΗ ---
-# Πολλαπλασιάζουμε κάθε template ώστε να βγουν πολλές (διαφορετικά γεμισμένες)
-# παραλλαγές· το drop_duplicates κρατά μόνο τις μοναδικές.
-rows = []  # λίστα από {text, label}
+# --- GENERATION ---
+# We multiply each template so that many (differently filled) variants come out;
+# drop_duplicates keeps only the unique ones.
+rows = []  # list of {text, label}
 
-# Scam emails (label = 1) — κάθε template παράγει πολλές παραλλαγές
-# Τα romance/investment έχουν λιγότερα templates, οπότε πολλαπλασιάζονται
-# περισσότερο (x20) για ισορροπία στον αριθμό παραλλαγών.
+# Scam emails (label = 1) — each template produces many variants.
+# The romance/investment categories have fewer templates, so they are multiplied
+# more (x20) to balance the number of variants.
 all_scam_templates = (
     nigerian_prince_templates * 18
     + lottery_templates * 18
@@ -163,14 +163,14 @@ for t in all_legit_templates:
     rows.append({"text": fill_legit(t), "label": 0})
 
 df = pd.DataFrame(rows)
-df = df.drop_duplicates(subset="text").reset_index(drop=True)  # αφαίρεση ταυτόσημων
-df = df.sample(frac=1, random_state=42).reset_index(drop=True)  # ανακάτεμα (σταθερό seed)
+df = df.drop_duplicates(subset="text").reset_index(drop=True)  # remove identical rows
+df = df.sample(frac=1, random_state=42).reset_index(drop=True)  # shuffle (fixed seed)
 
-print(f"Σύνολο emails: {len(df)}")
+print(f"Total emails: {len(df)}")
 print(f"Scam (1): {(df['label']==1).sum()}")
 print(f"Legit (0): {(df['label']==0).sum()}")
 
 import os
-os.makedirs("data/raw", exist_ok=True)  # σιγουρευόμαστε ότι υπάρχει ο φάκελος
+os.makedirs("data/raw", exist_ok=True)  # make sure the folder exists
 df.to_csv("data/raw/emails.csv", index=False)
-print("\n✓ Αποθηκεύτηκε: data/raw/emails.csv")
+print("\n✓ Saved: data/raw/emails.csv")
