@@ -1,18 +1,18 @@
 ### ML Classifier (Task 4)
 
-Υπεύθυνος για τον σχεδιασμό, την επιλογή και την αξιολόγηση του μοντέλου μηχανικής μάθησης (ML Classifier) για τον διαχωρισμό των email (Spam/Legit).
+Responsible for the design, selection and evaluation of the machine learning model (ML Classifier) used to separate emails (Spam/Legit).
 
-**Βασικές Υλοποιήσεις:**
+**Key implementations:**
 
-* **Διαχείριση Δεδομένων:** Πραγματοποιήθηκε 80/20 Train/Test split. Λόγω του έντονου class imbalance (τα spam ήταν μόνο το 7,7% του dataset των 13.919 emails), εφαρμόστηκε `stratified split` για τη διατήρηση της σωστής κατανομής και κανονικοποίηση (MinMaxScaler) για το baseline μοντέλο.
-* **Εκπαίδευση Μοντέλων:**
-  * Ανάπτυξη ενός **Baseline μοντέλου (Multinomial Naive Bayes)**, το οποίο ανέδειξε το πρόβλημα του imbalance (Recall 0%).
-  * Ανάπτυξη του **Κύριου μοντέλου (Random Forest)** με χρήση της παραμέτρου `class_weight="balanced"` για την αυστηρότερη τιμωρία των λανθασμένων Spam.
-* **Αξιολόγηση:** Εξαγωγή αναλυτικών μετρικών (Precision, Recall, F1-Score, Confusion Matrix, ROC-AUC). Το Random Forest επιλέχθηκε ως τελικό μοντέλο, επιτυγχάνοντας **ROC-AUC 0,815** και **Spam Recall 65%**.
-* **Inference Pipeline:** Δημιουργία του `predict.py`, το οποίο δέχεται νέα emails, εξάγει δυναμικά τα features τους και επιστρέφει το τελικό label (SCAM/LEGIT) μαζί με το confidence score, τροφοδοτώντας έτσι το Generative AI σκέλος του συστήματος.
+* **Data handling:** An 80/20 Train/Test split was performed. Due to the severe class imbalance (spam accounted for only 7.7% of the 13,919-email dataset), a `stratified split` was applied to preserve the correct distribution, along with normalisation (MinMaxScaler) for the baseline model.
+* **Model training:**
+  * Development of a **Baseline model (Multinomial Naive Bayes)**, which exposed the imbalance problem (Recall 0%).
+  * Development of the **Main model (Random Forest)** using the `class_weight="balanced"` parameter to penalise misclassified Spam more heavily.
+* **Evaluation:** Extraction of detailed metrics (Precision, Recall, F1-Score, Confusion Matrix, ROC-AUC). Random Forest was selected as the final model, achieving **ROC-AUC 0.815** and **Spam Recall 65%**.
+* **Inference pipeline:** Creation of `predict.py`, which takes new emails, dynamically extracts their features and returns the final label (SCAM/LEGIT) together with a confidence score, thereby feeding the Generative AI part of the system.
 
-**Παραδοτέα:**
-- `src/classifier/train.py` (αντί του ενιαίου classifier.py για καλύτερη δομή)
+**Deliverables:**
+- `src/classifier/train.py` (instead of a single classifier.py, for better structure)
 - `src/classifier/predict.py`
 - `outputs/classifier.pkl`
 - `docs/module_docs/metrics.md`
