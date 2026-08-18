@@ -1,14 +1,14 @@
 """
 pipeline.py — End-to-end pipeline (classifier -> responder -> multi-turn)
-(Task 6: ενοποίηση των σταδίων σε ενιαία ροή + multi-turn συμπεριφορά)
+(Task 6: integration of the stages into a single flow + multi-turn behaviour)
 
-ΤΙ ΚΑΝΕΙ:
-  Δένει τα δύο στάδια του συστήματος σε μία ροή:
-    1. Classifier  -> είναι scam το email;
-    2. Responder   -> αν ναι, παράγει scambaiting απάντηση
-    3. Multi-turn  -> κρατά conversation history ώστε να συνεχίζει η συνομιλία
+WHAT IT DOES:
+  Ties the two stages of the system into one flow:
+    1. Classifier  -> is the email a scam?
+    2. Responder   -> if so, generates a scambaiting reply
+    3. Multi-turn  -> keeps conversation history so the conversation continues
 
-  Κάθε session καταγράφεται σε JSONL για μετέπειτα ανάλυση (χωρίς το πλήρες history).
+  Every session is logged to JSONL for later analysis (without the full history).
 """
 
 import sys
@@ -16,43 +16,43 @@ import os
 import json
 from datetime import datetime
 
-# Το src/ στο path, ώστε να βρεθούν τα classifier & responder packages.
+# src/ on the path, so that the classifier & responder packages can be found.
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from classifier.predict import predict_email
 from responder.responder import generate_reply
 
-# Κατώφλι πιθανότητας πάνω από το οποίο ένα email θεωρείται scam.
+# Probability threshold above which an email is considered a scam.
 SCAM_THRESHOLD = 0.5
 
-# Αρχείο καταγραφής sessions (git-ignored — μπορεί να περιέχει email content).
+# Session log file (git-ignored — it may contain email content).
 SESSIONS_FILE = "outputs/sessions.jsonl"
 
 
 def run_pipeline(email_text: str, session_id: str = None, history: list = None):
     """
-    Επεξεργάζεται ένα εισερχόμενο email μέσα από ολόκληρη τη ροή.
+    Processes an incoming email through the entire flow.
 
-    Returns dict με:
+    Returns a dict with:
       - is_scam     : bool
       - confidence  : float
-      - reply       : str ή None (αν δεν είναι scam)
+      - reply       : str or None (if it is not a scam)
       - scam_type   : str
-      - history     : ενημερωμένο conversation history (για το επόμενο turn)
+      - history     : updated conversation history (for the next turn)
     """
-    # Αν δεν δοθεί session_id, φτιάχνουμε ένα από την τρέχουσα ώρα.
+    # If no session_id is given, we build one from the current time.
     session_id = session_id or datetime.now().strftime("%Y%m%d_%H%M%S")
     history = history or []
 
-    # ── Βήμα 1: Classification ──
+    # ── Step 1: Classification ──
     print(f"\n[1/2] Classifying email...")
     classification = predict_email(email_text)
-    # confidence = πιθανότητα να είναι scam -> σύγκριση με το κατώφλι.
+    # confidence = probability of being a scam -> compared against the threshold.
     is_scam = classification["confidence"] >= SCAM_THRESHOLD
 
     print(f"      Label     : {classification['label']}")
     print(f"      Confidence: {classification['confidence']:.1%}")
 
-    # Βασικός σκελετός του αποτελέσματος (συμπληρώνεται αν είναι scam).
+    # Basic skeleton of the result (filled in if it is a scam).
     result = {
         "session_id": session_id,
         "timestamp": datetime.now().isoformat(),
@@ -65,15 +65,15 @@ def run_pipeline(email_text: str, session_id: str = None, history: list = None):
         "history": history,
     }
 
-    # Αν ΔΕΝ είναι scam -> δεν παράγουμε απάντηση, απλώς καταγράφουμε.
+    # If it is NOT a scam -> we generate no reply, we just log it.
     if not is_scam:
         print("      ✓ Legitimate email — no reply generated.")
         _log_session(result)
         return result
 
-    # ── Βήμα 2: Generate Reply (μόνο για scam) ──
+    # ── Step 2: Generate Reply (scam only) ──
     print(f"\n[2/2] Generating scambaiting reply...")
-    # Περνάμε το history -> ο responder κρατά συνέχεια (multi-turn) & guardrail.
+    # We pass the history -> the responder keeps continuity (multi-turn) & guardrails.
     response = generate_reply(email_text, history)
 
     result["scam_type"] = response["scam_type"]
@@ -93,7 +93,7 @@ def run_pipeline(email_text: str, session_id: str = None, history: list = None):
 
 
 def _log_session(result: dict):
-    """Καταγράφει κάθε session σε JSONL (χωρίς το πλήρες history, για συντομία)."""
+    """Logs each session to JSONL (without the full history, for brevity)."""
     os.makedirs("outputs", exist_ok=True)
     log_entry = {k: v for k, v in result.items() if k != "history"}
     with open(SESSIONS_FILE, "a") as f:
@@ -102,16 +102,16 @@ def _log_session(result: dict):
 
 def multi_turn_demo():
     """
-    Demo της multi-turn συμπεριφοράς: 3 διαδοχικά μηνύματα του scammer, όπου το
-    conversation history μεταφέρεται από turn σε turn (ίδια persona σε όλα).
+    Demo of the multi-turn behaviour: 3 consecutive scammer messages, where the
+    conversation history is carried from turn to turn (same persona throughout).
     """
     print("\n" + "="*60)
     print("  MULTI-TURN SCAMBAITING DEMO")
     print("="*60)
 
-    # 3 σκηνοθετημένα scam emails που κλιμακώνουν (ζητούν στοιχεία -> ζητούν χρήματα).
-    # Είναι "γεμάτα" σήματα απάτης (CAPS, !!!, ποσά, keywords) ώστε ο classifier
-    # να τα εντοπίζει σταθερά ως scam και να ενεργοποιείται ο responder.
+    # 3 scripted scam emails that escalate (asking for details -> asking for money).
+    # They are "loaded" with fraud signals (CAPS, !!!, amounts, keywords) so that the
+    # classifier consistently flags them as scam and the responder is triggered.
     scam_emails = [
         """Dear Beloved Friend, I am Prince Adebayo, son of the late King of Nigeria.
         I have $45 MILLION DOLLARS in inheritance funds trapped in a bank account!!!
@@ -131,13 +131,13 @@ def multi_turn_demo():
     history = []
     session_id = "demo_" + datetime.now().strftime("%H%M%S")
 
-    # Τρέχουμε το pipeline για κάθε email, μεταφέροντας το history κάθε φορά.
+    # We run the pipeline for each email, carrying the history forward each time.
     for i, email in enumerate(scam_emails, 1):
         print(f"\n{'='*60}")
         print(f"  [Scammer Email #{i}]")
         print(f"  {email[:120].strip()}...")
         result = run_pipeline(email, session_id=session_id, history=history)
-        history = result["history"]   # -> τροφοδοτεί το επόμενο turn
+        history = result["history"]   # -> feeds the next turn
 
     print(f"\n[✓] Multi-turn demo complete. {len(scam_emails)} turns logged.")
 
