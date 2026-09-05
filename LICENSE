@@ -1,0 +1,132 @@
+SCAMAI — AI-DRIVEN SPAM DETECTION & SCAM-ENGAGEMENT SYSTEM — PROPRIETARY LICENCE
+
+Copyright (c) 2026 The ScamAI Project Team — MSc "Cybersecurity and Artificial
+Intelligence Technologies", University of Piraeus. All rights reserved.
+
+This repository contains the complete source code of an academic group project
+(an MSc assignment for the University of Piraeus): a two-stage system for
+detecting scam/spam email and engaging with scammers. The first stage is a
+Random Forest classifier (with a Multinomial Naive Bayes baseline) trained on a
+consolidated dataset of 13,919 emails drawn from three sources — a synthetic
+template set, the Enron Fraud corpus and the SpamAssassin corpus — using eight
+interpretable, hand-crafted features. The second stage is a generative-AI
+"scambaiting" responder that detects the scam type, adopts a matching persona
+and drafts time-wasting replies, protected by an output safety layer (redaction
+of PII, IBANs, cards and crypto wallets; blocking of physical meetings,
+addresses, threats and abuse) and by prompt-injection defences that treat the
+incoming email as untrusted data, with multi-turn support and pluggable
+providers (an offline mock provider plus Anthropic Claude, OpenAI and Google
+Gemini). The repository also includes the preprocessing pipeline, the trained
+model artefact, unit tests, a Streamlit demonstration UI, and the accompanying
+report, presentation and documentation.
+
+Publishing this repository does not place any of it in the public domain and
+does not grant any licence beyond what is stated below.
+
+
+────────────────────────────────────────────────────────────────────────────
+SOURCE CODE
+────────────────────────────────────────────────────────────────────────────
+
+PERMITTED
+
+  1. Reading and studying the source code.
+  2. Quoting short excerpts for commentary, review, teaching or technical
+     discussion, with attribution to the authors and a link to this repository.
+  3. Running the project locally for the sole purpose of evaluating it,
+     provided it is not deployed, published or made available to any third
+     party.
+
+NOT PERMITTED without prior written permission
+
+  1. Redistributing the code, in whole or substantial part, as a template,
+     boilerplate or starter project.
+  2. Submitting this work, in whole or in part, as one's own academic
+     assignment or coursework.
+  3. Sublicensing, selling, renting or otherwise transferring rights in it.
+  4. Incorporating the code, or content derived from it, into any commercial
+     product, service, training dataset or publication.
+  5. Removing or altering this notice or any copyright or attribution notice
+     contained in the source files.
+
+
+────────────────────────────────────────────────────────────────────────────
+ACADEMIC INTEGRITY AND RESPONSIBLE USE
+────────────────────────────────────────────────────────────────────────────
+
+This project was produced as an educational exercise. It is shared for study,
+review and demonstration purposes only.
+
+It must not be submitted, in whole or in part, as anyone else's academic work.
+Whoever uses this repository is solely responsible for complying with the
+academic-integrity rules of their own institution. The authors accept no
+responsibility for any consequences of plagiarism or misuse.
+
+This project studies scam detection and automated scam engagement for
+defensive, educational purposes. The system is fully SIMULATED: it never sends
+email, never contacts any real person, and produces only draft replies intended
+for human review and approval (human-in-the-loop). The scambaiting responder
+must not be used to engage, deceive, harass, provoke or retaliate against any
+person, to conduct any campaign against real individuals, organisations or
+systems, or in any way that could lead to real-world contact or escalation.
+
+The scam emails included are synthetic or drawn from public research corpora and
+target no real individual. The detection and response logic here is a laboratory
+prototype evaluated on small, curated datasets; it is not hardened, audited or
+intended for production use, and must not be relied upon to protect, or to act
+on behalf of, any real system or real user without independent review.
+
+
+────────────────────────────────────────────────────────────────────────────
+CONFIGURATION AND DATA
+────────────────────────────────────────────────────────────────────────────
+
+No real API keys, service credentials or other secrets are contained in this
+repository. The provided .env.example is a template only; any real keys are
+supplied locally by the user and are never committed.
+
+All email addresses, names, domain names and monetary figures appearing in the
+synthetic dataset are fabricated laboratory examples. The real-world corpora
+(Enron, SpamAssassin) are public datasets used for research; they are not
+redistributed here and must be obtained from their original sources under their
+own terms. The results, logs and model artefacts contain no personal data about
+any of the authors or any third party. Any resemblance to real identifiers is
+coincidental.
+
+
+────────────────────────────────────────────────────────────────────────────
+THIRD-PARTY DEPENDENCIES
+────────────────────────────────────────────────────────────────────────────
+
+The pipeline depends on open-source packages distributed under their own
+licences — including pandas, numpy, scikit-learn, nltk, anthropic, openai,
+google-generativeai, python-dotenv, streamlit, matplotlib, seaborn and pytest.
+Nothing in this licence grants any right in those packages or tools. Their
+respective terms apply to them independently, and this licence covers only the
+original work of the authors.
+
+The generative-AI providers (Anthropic Claude, OpenAI, Google Gemini) are
+third-party services governed by their own terms of use; this licence grants no
+rights in them, and their use is subject to those terms.
+
+
+────────────────────────────────────────────────────────────────────────────
+NO WARRANTY
+────────────────────────────────────────────────────────────────────────────
+
+This software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and non-infringement.
+
+In no event shall the authors be liable for any claim, damages or other
+liability arising from, out of or in connection with this software or its use,
+including any consequences of relying on it to detect scams, or of any output
+produced by the generative-AI responder.
+
+
+────────────────────────────────────────────────────────────────────────────
+CONTACT
+────────────────────────────────────────────────────────────────────────────
+
+For permission requests, please contact the copyright holders through the
+GitHub profile associated with this repository.
